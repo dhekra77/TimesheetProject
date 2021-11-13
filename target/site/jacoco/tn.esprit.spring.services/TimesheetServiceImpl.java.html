@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TimesheetServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Timesheet-spring-boot-core-data-jpa-mvc-REST-1</a> &gt; <a href="index.source.html" class="el_package">tn.esprit.spring.services</a> &gt; <span class="el_source">TimesheetServiceImpl.java</span></div><h1>TimesheetServiceImpl.java</h1><pre class="source lang-java linenums">package tn.esprit.spring.services;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+
+import tn.esprit.spring.entities.Departement;
+import tn.esprit.spring.entities.Employe;
+import tn.esprit.spring.entities.Mission;
+import tn.esprit.spring.entities.Role;
+import tn.esprit.spring.entities.Timesheet;
+import tn.esprit.spring.entities.TimesheetPK;
+import tn.esprit.spring.repository.DepartementRepository;
+import tn.esprit.spring.repository.EmployeRepository;
+import tn.esprit.spring.repository.MissionRepository;
+import tn.esprit.spring.repository.TimesheetRepository;
+import java.util.Optional;
+import org.apache.logging.log4j.Level;
+
+@Service
+<span class="fc" id="L26">public class TimesheetServiceImpl implements ITimesheetService {</span>
+	
+
+	@Autowired
+	MissionRepository missionRepository;
+	@Autowired
+	DepartementRepository deptRepoistory;
+	@Autowired
+	TimesheetRepository timesheetRepository;
+	@Autowired
+	EmployeRepository employeRepository;
+	
+<span class="fc" id="L38">	private static final Logger l = LogManager.getLogger(TimesheetServiceImpl.class);</span>
+	
+	
+	
+	//Nada
+	public int ajouterMission(Mission mission) {
+<span class="fc" id="L44">		missionRepository.save(mission);</span>
+<span class="fc" id="L45">		return mission.getId();</span>
+		
+	}
+    
+	//Nada
+	public void affecterMissionADepartement(int missionId, int depId) {
+<span class="fc" id="L51">		Optional&lt;Mission&gt; mission = missionRepository.findById(missionId);</span>
+<span class="fc" id="L52">		Optional&lt;Departement&gt; dep = deptRepoistory.findById(depId);</span>
+<span class="pc bpc" id="L53" title="2 of 4 branches missed.">		if(mission.isPresent() &amp;&amp; dep.isPresent()) {</span>
+<span class="fc" id="L54">			mission.get().setDepartement(dep.get());</span>
+<span class="fc" id="L55">			missionRepository.save(mission.get());</span>
+			//logging
+<span class="fc" id="L57">			l.log(Level.INFO, ()-&gt; &quot;affecterMissionADepartement:&quot;+ missionId +&quot;A&quot;+ depId);</span>
+		}		
+<span class="fc" id="L59">	}</span>
+
+	
+
+	//NON
+	public void ajouterTimesheet(int missionId, int employeId, Date dateDebut, Date dateFin) {
+<span class="nc" id="L65">		TimesheetPK timesheetPK = new TimesheetPK();</span>
+<span class="nc" id="L66">		timesheetPK.setDateDebut(dateDebut);</span>
+<span class="nc" id="L67">		timesheetPK.setDateFin(dateFin);</span>
+<span class="nc" id="L68">		timesheetPK.setIdEmploye(employeId);</span>
+<span class="nc" id="L69">		timesheetPK.setIdMission(missionId);</span>
+		
+<span class="nc" id="L71">		Timesheet timesheet = new Timesheet();</span>
+<span class="nc" id="L72">		timesheet.setTimesheetPK(timesheetPK);</span>
+<span class="nc" id="L73">		timesheet.setValide(false); //par defaut non valide</span>
+<span class="nc" id="L74">		timesheetRepository.save(timesheet);</span>
+		
+<span class="nc" id="L76">	}</span>
+
+	//NON
+		public void validerTimesheet(int missionId, int employeId, Date dateDebut, Date dateFin, int validateurId) {
+<span class="nc" id="L80">			l.log(Level.INFO, ()-&gt; &quot;In valider Timesheet&quot;);</span>
+<span class="nc" id="L81">			Optional&lt;Employe&gt; validateur = employeRepository.findById(validateurId);</span>
+<span class="nc" id="L82">			Optional&lt;Mission&gt; mission = missionRepository.findById(missionId);</span>
+<span class="nc bnc" id="L83" title="All 4 branches missed.">			if(validateur.isPresent() &amp;&amp; mission.isPresent()) {</span>
+				//verifier s'il est un chef de departement (interet des enum)
+<span class="nc bnc" id="L85" title="All 2 branches missed.">				if(!validateur.get().getRole().equals(Role.CHEF_DEPARTEMENT)){</span>
+<span class="nc" id="L86">					l.log(Level.INFO, ()-&gt; &quot;l'employe doit etre chef de departement pour valider une feuille de temps !&quot;);</span>
+<span class="nc" id="L87">					return;</span>
+				}
+				//verifier s'il est le chef de departement de la mission en question
+<span class="nc" id="L90">				boolean chefDeLaMission = false;</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">				for(Departement dep : validateur.get().getDepartements()){</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">					if(dep.getId() == mission.get().getDepartement().getId()){</span>
+<span class="nc" id="L93">						chefDeLaMission = true;</span>
+<span class="nc" id="L94">						break;</span>
+					}
+				}
+<span class="nc bnc" id="L97" title="All 2 branches missed.">				if(!chefDeLaMission){</span>
+<span class="nc" id="L98">					l.log(Level.INFO, ()-&gt; &quot;l'employe doit etre chef de departement de la mission en question&quot;);</span>
+<span class="nc" id="L99">					return;</span>
+				}
+		//
+<span class="nc" id="L102">				TimesheetPK timesheetPK = new TimesheetPK(missionId, employeId, dateDebut, dateFin);</span>
+<span class="nc" id="L103">				Timesheet timesheet =timesheetRepository.findBytimesheetPK(timesheetPK);</span>
+<span class="nc" id="L104">				timesheet.setValide(true);</span>
+				
+				//Comment Lire une date de la base de données
+<span class="nc" id="L107">				SimpleDateFormat dateFormat = new SimpleDateFormat(&quot;dd/MM/yyyy&quot;);</span>
+<span class="nc" id="L108">				l.log(Level.INFO,()-&gt; &quot;dateDebut : &quot; + dateFormat.format(timesheet.getTimesheetPK().getDateDebut()));</span>
+			}
+			
+<span class="nc" id="L111">		}</span>
+		
+	//Nada
+	public List&lt;Mission&gt; findAllMissionByEmployeJPQL(int employeId) {
+<span class="nc" id="L115">		  List&lt;Mission&gt; misList = timesheetRepository.findAllMissionByEmployeJPQL(employeId);</span>
+		//logging  
+<span class="nc bnc" id="L117" title="All 2 branches missed.">		   for (Mission mis: misList){</span>
+<span class="nc" id="L118">			   l.log(Level.INFO,()-&gt; &quot;findAllMissionByEmploye:&quot;+ mis);</span>
+		   }
+		   
+<span class="nc" id="L121">		return misList;</span>
+		
+		 
+	}
+	
+	//Nada
+	public List&lt;Mission&gt; getAllMissions() {
+		//logging
+<span class="fc" id="L129">		 l.info(&quot;getAllMissions:&quot; ); </span>
+<span class="fc" id="L130">		 return (List&lt;Mission&gt;) missionRepository.findAll();</span>
+     
+}
+	
+	//Nada
+	public void deleteMissionById(int misId) {
+<span class="fc" id="L136">		Optional&lt;Mission&gt; misdelete=missionRepository.findById(misId);</span>
+<span class="pc bpc" id="L137" title="1 of 2 branches missed.">		if(misdelete.isPresent()) {</span>
+<span class="fc" id="L138">		missionRepository.delete(misdelete.get());</span>
+		}
+<span class="fc" id="L140">	}</span>
+	
+	//Nada
+	public Optional&lt;Mission&gt; getMissionById(int misId) {
+<span class="fc" id="L144">		Optional&lt;Mission&gt; misList = missionRepository.findById(misId) ;	</span>
+		//logging
+<span class="fc" id="L146">		l.log(Level.INFO, ()-&gt; &quot;getMissionById &quot;+ misId);</span>
+<span class="fc" id="L147">	 	return misList;</span>
+		 	
+	}
+
+	//Yasmin
+	public List&lt;Employe&gt; getAllEmployeByMission(int missionId) {
+<span class="nc" id="L153">		return timesheetRepository.getAllEmployeByMission(missionId);</span>
+		
+	}
+	
+	//nada
+	public void mettreAjourDescriptionByMissionId(String desc, int misId) {
+<span class="fc" id="L159">		missionRepository.mettreAjourDescriptionByMissionId(desc, misId);</span>
+<span class="fc" id="L160">	}</span>
+
+	@Override
+	public List&lt;Mission&gt; findAllMissionBydepartementJPQL(int depId) {
+		 //logging
+<span class="fc" id="L165">		l.info(&quot;findAllMissionBydepartement:&quot; ); </span>
+<span class="fc" id="L166">		List&lt;Mission&gt; misList =missionRepository.findAllMissionBydepartementJPQL(depId); </span>
+<span class="pc bpc" id="L167" title="1 of 2 branches missed.">		 for (Mission mis: misList){</span>
+<span class="nc" id="L168">			 l.log(Level.INFO, ()-&gt; &quot;findAllMissionBydepartementJPQL:&quot;+mis);</span>
+		   }
+<span class="fc" id="L170">	     return  misList;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>

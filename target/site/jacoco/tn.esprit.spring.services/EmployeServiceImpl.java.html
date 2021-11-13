@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EmployeServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Timesheet-spring-boot-core-data-jpa-mvc-REST-1</a> &gt; <a href="index.source.html" class="el_package">tn.esprit.spring.services</a> &gt; <span class="el_source">EmployeServiceImpl.java</span></div><h1>EmployeServiceImpl.java</h1><pre class="source lang-java linenums">package tn.esprit.spring.services;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import tn.esprit.spring.advice.TrackExecutionTime;
+import tn.esprit.spring.entities.Contrat;
+import tn.esprit.spring.entities.Departement;
+import tn.esprit.spring.entities.Employe;
+import tn.esprit.spring.entities.Entreprise;
+import tn.esprit.spring.entities.Mission;
+import tn.esprit.spring.entities.Timesheet;
+import tn.esprit.spring.repository.ContratRepository;
+import tn.esprit.spring.repository.DepartementRepository;
+import tn.esprit.spring.repository.EmployeRepository;
+import tn.esprit.spring.repository.TimesheetRepository;
+
+import java.util.Optional;
+
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import exceptions.ResourceNotFoundException;
+
+@Service
+<span class="fc" id="L32">public class EmployeServiceImpl implements IEmployeService {</span>
+<span class="fc" id="L33">	private static final Logger logger = LogManager.getLogger(EmployeServiceImpl.class);</span>
+
+	@Autowired
+	EmployeRepository employeRepository;
+	@Autowired
+	DepartementRepository deptRepoistory;
+	@Autowired
+	ContratRepository contratRepoistory;
+	@Autowired
+	TimesheetRepository timesheetRepository;
+
+	// Yasmin
+	@TrackExecutionTime
+	public int ajouterEmploye(Employe employe) {
+<span class="fc" id="L47">		employeRepository.save(employe);</span>
+<span class="fc" id="L48">		return employe.getId();</span>
+	}
+
+	// Yasmin
+	@TrackExecutionTime
+	public void mettreAjourEmailByEmployeId(String email, int employeId) {
+<span class="fc" id="L54">		Optional&lt;Employe&gt; employe = employeRepository.findById(employeId);</span>
+<span class="pc bpc" id="L55" title="1 of 2 branches missed.">		if (employe.isPresent()) {</span>
+<span class="fc" id="L56">			employe.get().setEmail(email);</span>
+<span class="fc" id="L57">			employeRepository.save(employe.get());</span>
+		}
+<span class="fc" id="L59">	}</span>
+
+	// Amal
+	@Transactional
+	public void affecterEmployeADepartement(int employeId, int depId) {
+
+<span class="fc" id="L65">		Optional&lt;Departement&gt; depManagedEntity = deptRepoistory.findById(depId);</span>
+<span class="fc" id="L66">		Optional&lt;Employe&gt; employeManagedEntity = employeRepository.findById(employeId);</span>
+<span class="pc bpc" id="L67" title="2 of 4 branches missed.">		if (depManagedEntity.isPresent() &amp;&amp; employeManagedEntity.isPresent()) {</span>
+<span class="pc bpc" id="L68" title="1 of 2 branches missed.">			if (depManagedEntity.get().getEmployes() == null) {</span>
+
+<span class="nc" id="L70">				List&lt;Employe&gt; employes = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L71">				employes.add(employeManagedEntity.get());</span>
+<span class="nc" id="L72">				depManagedEntity.get().setEmployes(employes);</span>
+<span class="nc" id="L73">			} else {</span>
+
+<span class="fc" id="L75">				depManagedEntity.get().getEmployes().add(employeManagedEntity.get());</span>
+			}
+		}
+
+<span class="fc" id="L79">	}</span>
+
+	// Amal
+	@Transactional
+	public void desaffecterEmployeDuDepartement(int employeId, int depId) {
+<span class="fc" id="L84">		Optional&lt;Departement&gt; dep = deptRepoistory.findById(depId);</span>
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">		if (dep.isPresent()) {</span>
+<span class="fc" id="L86">			int employeNb = dep.get().getEmployes().size();</span>
+<span class="fc bfc" id="L87" title="All 2 branches covered.">			for (int index = 0; index &lt; employeNb; index++) {</span>
+<span class="pc bpc" id="L88" title="1 of 2 branches missed.">				if (dep.get().getEmployes().get(index).getId() == employeId) {</span>
+<span class="nc" id="L89">					dep.get().getEmployes().remove(index);</span>
+<span class="nc" id="L90">					break;// a revoir</span>
+				}
+			}
+		}
+
+<span class="fc" id="L95">	}</span>
+
+	// Yasmin
+	@TrackExecutionTime
+	public String getEmployePrenomById(int employeId) {
+<span class="fc" id="L100">		Optional&lt;Employe&gt; employeManagedEntity = employeRepository.findById(employeId);</span>
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">		if (employeManagedEntity.isPresent()) {</span>
+<span class="fc" id="L102">			return employeManagedEntity.get().getPrenom();</span>
+		} else {
+<span class="nc" id="L104">			return null;</span>
+		}
+
+	}
+
+	// Yasmin
+	@TrackExecutionTime
+	public void deleteEmployeById(int employeId) {
+<span class="fc" id="L112">		Optional&lt;Employe&gt; employe = employeRepository.findById(employeId);</span>
+
+		// Desaffecter l'employe de tous les departements
+		// c'est le bout master qui permet de mettre a jour
+		// la table d'association
+<span class="pc bpc" id="L117" title="1 of 2 branches missed.">		if (employe.isPresent()) {</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">			for (Departement dep : employe.get().getDepartements()) {</span>
+<span class="nc" id="L119">				dep.getEmployes().remove(employe.get());</span>
+<span class="nc" id="L120">				deptRepoistory.save(dep);</span>
+			}
+<span class="nc" id="L122">			employeRepository.deleteEmploye(employe.get().getId());</span>
+		}
+<span class="fc" id="L124">	}</span>
+
+	// Yasmin
+	@TrackExecutionTime
+	public int getNombreEmployeJPQL() {
+<span class="fc" id="L129">		return employeRepository.countemp();</span>
+	}
+
+	// Yasmin
+	@TrackExecutionTime
+	public List&lt;String&gt; getAllEmployeNamesJPQL() {
+<span class="fc" id="L135">		return employeRepository.employeNames();</span>
+
+	}
+
+	// Yasmin
+	@TrackExecutionTime
+	public List&lt;Employe&gt; getAllEmployeByEntreprise(Entreprise entreprise) {
+<span class="fc" id="L142">		return employeRepository.getAllEmployeByEntreprisec(entreprise);</span>
+	}
+
+	// Yasmin
+	@TrackExecutionTime
+	public void mettreAjourEmailByEmployeIdJPQL(String email, int employeId) {
+<span class="fc" id="L148">		employeRepository.mettreAjourEmailByEmployeIdJPQL(email, employeId);</span>
+
+<span class="fc" id="L150">	}</span>
+
+	// Yasmin
+	@TrackExecutionTime
+	public float getSalaireByEmployeIdJPQL(int employeId) {
+<span class="fc" id="L155">		return employeRepository.getSalaireByEmployeIdJPQL(employeId);</span>
+	}
+
+	// Amal
+	public Double getSalaireMoyenByDepartementId(int departementId) {
+<span class="fc" id="L160">		return employeRepository.getSalaireMoyenByDepartementId(departementId);</span>
+	}
+
+	// NON
+	public List&lt;Timesheet&gt; getTimesheetsByMissionAndDate(Employe employe, Mission mission, Date dateDebut,
+			Date dateFin) {
+<span class="nc" id="L166">		return timesheetRepository.getTimesheetsByMissionAndDate(employe, mission, dateDebut, dateFin);</span>
+	}
+
+	// Yasmin
+	@TrackExecutionTime
+	public List&lt;Employe&gt; getAllEmployes() {
+<span class="fc" id="L172">		return (List&lt;Employe&gt;) employeRepository.findAll();</span>
+	}
+
+	// Imen
+	public int ajouterContrat(Contrat contrat) {
+<span class="fc" id="L177">		contratRepoistory.save(contrat);</span>
+<span class="fc" id="L178">		return contrat.getReference();</span>
+	}
+
+	// Imen
+	public int getNombreContratJPQL() {
+<span class="fc" id="L183">		return contratRepoistory.countcontrat();</span>
+	}
+
+	// Imen
+	public void affecterContratAEmploye(int contratId, int employeId) {
+<span class="nc" id="L188">		Contrat contratManagedEntity = contratRepoistory.findById(contratId)</span>
+<span class="nc" id="L189">				.orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Contrat not found with this id : &quot; + contratId));</span>
+<span class="nc" id="L190">		Employe employeManagedEntity = employeRepository.findById(employeId)</span>
+<span class="nc" id="L191">				.orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Employé not found with this id : &quot; + employeId));</span>
+
+<span class="nc" id="L193">		contratManagedEntity.setEmploye(employeManagedEntity);</span>
+<span class="nc" id="L194">		contratRepoistory.save(contratManagedEntity);</span>
+
+<span class="nc" id="L196">	}</span>
+
+	// Imen
+	public void deleteContratById(int contratId) {
+<span class="nc" id="L200">		Contrat contratManagedEntity = contratRepoistory.findById(contratId)</span>
+<span class="nc" id="L201">				.orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Contrat not found with this id : &quot; + contratId));</span>
+<span class="nc" id="L202">		contratRepoistory.delete(contratManagedEntity);</span>
+
+<span class="nc" id="L204">	}</span>
+
+	// dyna Imen
+	public void deleteContractById(int contatId) {
+<span class="fc" id="L208">		Optional&lt;Contrat&gt; contdelete = contratRepoistory.findById(contatId);</span>
+<span class="pc bpc" id="L209" title="1 of 2 branches missed.">		if (contdelete.isPresent()) {</span>
+<span class="fc" id="L210">			contratRepoistory.delete(contdelete.get());</span>
+		}
+<span class="fc" id="L212">	}</span>
+
+	// Imen
+	public void deleteAllContratJPQL() {
+<span class="fc" id="L216">		employeRepository.deleteAllContratJPQL();</span>
+<span class="fc" id="L217">	}</span>
+
+	// Imen
+	public List&lt;Contrat&gt; getAllContrats() {
+
+		// logging
+<span class="fc" id="L223">		logger.info(&quot;getAllContrats:&quot;);</span>
+<span class="fc" id="L224">		return (List&lt;Contrat&gt;) contratRepoistory.findAll();</span>
+
+	}
+
+	// Imen
+	@Override
+	public String getContratTypeById(int reference) {
+<span class="nc" id="L231">		String type = &quot;test&quot;;</span>
+		try {
+<span class="nc" id="L233">			logger.log(Level.INFO, () -&gt; &quot;In getContratTypeById(&quot; + reference + &quot;)&quot;);</span>
+<span class="nc" id="L234">			Optional&lt;Contrat&gt; contratManagedEntity = contratRepoistory.findById(reference);</span>
+<span class="nc bnc" id="L235" title="All 2 branches missed.">			if (contratManagedEntity.isPresent()) {</span>
+<span class="nc" id="L236">				type = contratManagedEntity.get().getTypeContrat();</span>
+<span class="nc" id="L237">				logger.info(&quot;Out getContratTypeById : &quot; + type);</span>
+			}
+
+<span class="nc" id="L240">		} catch (Exception e) {</span>
+<span class="nc" id="L241">			logger.error(&quot;Erreur : &quot; + e);</span>
+		}
+
+<span class="nc" id="L244">		return type;</span>
+	}
+
+	// Imen dynamique
+	public Contrat getContratById(int reference) {
+<span class="nc" id="L249">		Optional&lt;Contrat&gt; contratList = contratRepoistory.findById(reference);</span>
+		// logging
+<span class="nc bnc" id="L251" title="All 2 branches missed.">		if (contratList.isPresent()) {</span>
+<span class="nc" id="L252">			logger.info(&quot;getContratById : &quot; + contratList);</span>
+<span class="nc" id="L253">			return contratList.get();</span>
+		}
+<span class="nc" id="L255">		return null;</span>
+	}
+
+	public Contrat getAllContratByEmploye(Employe employe) {
+<span class="fc" id="L259">		return contratRepoistory.getAllContratByEmploye(employe);</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.6.202009150832</span></div></body></html>
