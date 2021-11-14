@@ -106,12 +106,7 @@ public class IEntrepriseServiceTest extends BaseJUnit49TestCase {
 
 	*/
 	
-	/*@Test
-	public void getNbrEntrepriseJPQLTest() {
-		int nombre = entrepriseService.getNbrEntrepriseJPQL();
-		LOG.log(Level.INFO, () -> "getNbrEntrepriseJPQL : " + nombre);
-		assertThat(nombre).isEqualTo(2);
-	}*/
+	
 	
 
 }
