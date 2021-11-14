@@ -29,7 +29,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 public class IEntrepriseServiceTest extends BaseJUnit49TestCase {
 	private static final Logger LOG = LogManager.getLogger(EntrepriseServiceImplTest.class);
 	//teste22
-	///fddfdfg
 //test--webhook
 	@Autowired
 	IEntrepriseService entServ;
