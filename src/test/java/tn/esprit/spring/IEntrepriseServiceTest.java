@@ -92,19 +92,7 @@ public class IEntrepriseServiceTest extends BaseJUnit49TestCase {
 			assertThat(e.get().getName()).isEqualTo(name);
 		}
 	}
-    /*@Test
-	public void getAllEntrepriseTest() {
-	//	List<Entreprise> entreprises = entrepriseService.getAllEntreprise();
-		//LOG.log(Level.INFO, () -> "getAllEntreprise : " + entreprises);
-		//assertThat(entreprises.size()).isGreaterThan(0);
-    	
-    	List<Entreprise> entreprises = entrepriseService.getAllEntreprise();
-    	LOG.log(Level.INFO, () -> "getAllEntreprise : " + entreprises);
-    		assertThat(entreprises.get(1)).isEqualTo(entreprise.getName());
-    		//assertThat(names.get(1)).isEqualTo(employe2.getNom());
-    	}
-
-	*/
+    
 	
 	
 	
